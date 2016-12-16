@@ -15,6 +15,8 @@ using namespace std;
 
 #include <iostream>
 
+#include <string>
+
 //------------------------------------------------------ Include personnel
 
 # include "TrajetSimple.h"
@@ -105,6 +107,24 @@ Trajet * TrajetSimple::Clone()
     clone = new TrajetSimple(*this);
     
     return clone;
+}
+
+string TrajetSimple::exporterTrajet(unsigned int numero)
+{
+    #ifdef MAP
+        cout << "Appel de la methode TrajetSimple::exporterTrajet" << endl;
+    #endif
+
+    string line = "";
+
+    string DepartS = string(depart);
+    string ArriveeS = string(arrivee);
+    string TransportS = string(transport);
+
+    line = "0:" + DepartS + "|" + ArriveeS + "|" + TransportS + "|" + "\r\n";
+
+    return line;
+
 }
 
 //-------------------------------------------- Constructeurs - destructeur

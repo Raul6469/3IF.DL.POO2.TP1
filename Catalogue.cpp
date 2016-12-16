@@ -15,13 +15,11 @@ using namespace std;
 
 # include <iostream>
 
-# include <fstream>
-
 # include <stdio.h>
 
-# include <stdlib.h>
+# include <fstream>
 
-# include <string>
+# include <stdlib.h>
 
 //------------------------------------------------------ Include personnel
 
@@ -169,18 +167,6 @@ void Catalogue::Rechercher (ListeTrajets * listeResultats, char * depart,
     }
 }
 
-void Catalogue::importer ()
-{
-    ifstream ("SaveCatalogue.txt");
-    
-    
-}
-
-void Catalogue::exporter ()
-{
-    
-}
-
 //------------------------------------------------- Surcharge d'opérateurs
 
 //-------------------------------------------- Constructeurs - destructeur
@@ -230,15 +216,6 @@ void run ()
     char arrivee[100];
     char transport[100];
     
-    char quit[] = "q";
-    char ajouter[] = "a";
-    char simple[] = "s";
-    char compose[] = "c";
-    char afficher[] = "f";
-    char rechercher[] = "r";
-    char exporter[] = "e";
-    char importer[] = "i";
-    
     int nbTrajets;
     int i;
     
@@ -255,14 +232,14 @@ void run ()
         cin >> lecture;
         
         // Ajouter Trajet
-        if ( equals (lecture, ajouter) == true )
+        if ( equals (lecture, "a\0") == true )
         {
             cout << "    Simple : s / Compose : c : ";
             
             cin >> lecture;
             
             // Trajet Simple
-            if ( equals (lecture, simple) == true )
+            if ( equals (lecture, "s\0") == true )
             {
                 cout << "       Depart  : ";
                 
@@ -283,7 +260,7 @@ void run ()
                 delete trajetSimple;
             }
             // Trajet Compose
-            else if ( equals (lecture, compose) == true )
+            else if ( equals (lecture, "c\0") == true )
             {
                 cout << "       Nombre Trajets : ";
                 
@@ -333,12 +310,12 @@ void run ()
             }
         }
         // Afficher
-        else if ( equals (lecture, afficher) == true )
+        else if ( equals (lecture, "f\0") == true )
         {
             catalogue.Afficher ();
         }
         // Rechercher
-        else if ( equals (lecture, rechercher) == true )
+        else if ( equals (lecture, "r\0") == true )
         {
             cout << "    Depart  : ";
                     
@@ -377,18 +354,54 @@ void run ()
             delete listeResultats;
         }
         // Exporter
-        else if ( equals (lecture, exporter) == true )
+        else if ( equals (lecture, "e\0") == true )
         {
             catalogue.exporter();
         }
         // Importer
-        else if ( equals (lecture, importer) == true )
+        else if ( equals (lecture, "i\0") == true )
         {
             catalogue.importer();
         }
     }
     // Quitter
-    while ( equals (lecture, quit) == false );
+    while ( equals (lecture, "q\0") == false );
+}
+
+void Catalogue::exporter()
+{
+    #ifdef MAP
+        cout << "Appel de la methode Catalogue::exporter" << endl;
+    #endif
+    
+    /*
+    ofstream fichier ("SaveCatalogue.txt");
+    streambuf * oldCoutBuffer = cout.rdbuf(fichier.rdbuf());
+    */
+
+    Trajet * t = listeTrajets.GetDebut();
+    unsigned int i = 0;
+
+    string line = "";
+
+    while(listeTrajets.GetTrajet(i) != NULL)
+    {
+        line = line + listeTrajets.GetTrajet(i)->exporterTrajet(i);
+        i++;
+    }
+
+    cout << line + "#";
+
+    /*
+    cout.rdbuf(oldCoutBuffer);
+
+    fichier.close();
+    */
+}
+
+void Catalogue::importer()
+{
+
 }
 
 int main ()
