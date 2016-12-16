@@ -15,9 +15,13 @@ using namespace std;
 
 # include <iostream>
 
+# include <fstream>
+
 # include <stdio.h>
 
 # include <stdlib.h>
+
+# include <string>
 
 //------------------------------------------------------ Include personnel
 
@@ -165,6 +169,18 @@ void Catalogue::Rechercher (ListeTrajets * listeResultats, char * depart,
     }
 }
 
+void Catalogue::importer ()
+{
+    ifstream ("SaveCatalogue.txt");
+    
+    
+}
+
+void Catalogue::exporter ()
+{
+    
+}
+
 //------------------------------------------------- Surcharge d'opérateurs
 
 //-------------------------------------------- Constructeurs - destructeur
@@ -214,6 +230,15 @@ void run ()
     char arrivee[100];
     char transport[100];
     
+    char quit[] = "q";
+    char ajouter[] = "a";
+    char simple[] = "s";
+    char compose[] = "c";
+    char afficher[] = "f";
+    char rechercher[] = "r";
+    char exporter[] = "e";
+    char importer[] = "i";
+    
     int nbTrajets;
     int i;
     
@@ -230,14 +255,14 @@ void run ()
         cin >> lecture;
         
         // Ajouter Trajet
-        if ( equals (lecture, "a\0") == true )
+        if ( equals (lecture, ajouter) == true )
         {
             cout << "    Simple : s / Compose : c : ";
             
             cin >> lecture;
             
             // Trajet Simple
-            if ( equals (lecture, "s\0") == true )
+            if ( equals (lecture, simple) == true )
             {
                 cout << "       Depart  : ";
                 
@@ -258,7 +283,7 @@ void run ()
                 delete trajetSimple;
             }
             // Trajet Compose
-            else if ( equals (lecture, "c\0") == true )
+            else if ( equals (lecture, compose) == true )
             {
                 cout << "       Nombre Trajets : ";
                 
@@ -308,12 +333,12 @@ void run ()
             }
         }
         // Afficher
-        else if ( equals (lecture, "f\0") == true )
+        else if ( equals (lecture, afficher) == true )
         {
             catalogue.Afficher ();
         }
         // Rechercher
-        else if ( equals (lecture, "r\0") == true )
+        else if ( equals (lecture, rechercher) == true )
         {
             cout << "    Depart  : ";
                     
@@ -352,18 +377,18 @@ void run ()
             delete listeResultats;
         }
         // Exporter
-        else if ( equals (lecture, "e\0") == true )
+        else if ( equals (lecture, exporter) == true )
         {
             catalogue.exporter();
         }
         // Importer
-        else if ( equals (lecture, "i\0") == true )
+        else if ( equals (lecture, importer) == true )
         {
             catalogue.importer();
         }
     }
     // Quitter
-    while ( equals (lecture, "q\0") == false );
+    while ( equals (lecture, quit) == false );
 }
 
 int main ()
