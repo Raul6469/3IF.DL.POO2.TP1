@@ -33,7 +33,7 @@ using namespace std;
 
 //----------------------------------------------------- Méthodes publiques
 
-void affecter (char * chaine1, char * chaine2)
+void affecter (char * chaine1, const char * chaine2)
 // Mode d'emploi :
     // Paramètres : 2 chaines de caratères
     // Action : Rend chaine1 identique à chaine 2
@@ -169,11 +169,140 @@ void Catalogue::Rechercher (ListeTrajets * listeResultats, char * depart,
     }
 }
 
+Trajet * lireTrajetSimple (string contenu, int * i)
+{    
+    *i = *i + 2;
+    
+    Trajet * trajetSimple;
+        
+    string depart = "";
+    string arrivee = "";
+    string transport = "";
+    
+    while (contenu[*i] != '|')
+    {
+        depart = depart + contenu[*i];
+        
+        *i = *i + 1;
+    }
+    
+    *i = *i + 1;
+    
+    while (contenu[*i] != '|')
+    {
+        arrivee = arrivee + contenu[*i];
+        
+        *i = *i + 1;
+    }
+    
+    *i = *i + 1;
+    
+    while (contenu[*i] != '|')
+    {
+        transport = transport + contenu[*i];
+        
+        *i = *i + 1;
+    }
+
+    *i = *i + 1;
+    
+    trajetSimple = new TrajetSimple (depart.c_str(), arrivee.c_str(), transport.c_str());
+    
+    return trajetSimple;
+}
+
+Trajet * lireTrajetCompose (string contenu, int * i)
+{
+    *i = *i + 2;
+    
+    // Trajet Compose
+    if (contenu[*i] != '0')
+    {
+        ListeTrajets * listeTrajets;
+        listeTrajets = new ListeTrajets;
+        
+        listeTrajets->Ajouter(lireTrajetCompose (contenu, i));
+        
+        Trajet * trajetCompose;
+        
+        trajetCompose = new TrajetCompose(listeTrajets);
+        
+        delete listeTrajets;
+        
+        return trajetCompose;
+    }
+    // Trajet Simple
+    else if (contenu[*i] == '0')
+    {    
+        return lireTrajetSimple (contenu, i);
+    }
+}
+
 void Catalogue::importer ()
 {
-    ifstream ("SaveCatalogue.txt");
+    ifstream saveFile;
     
+    saveFile.open ("./SaveCatalogue");
     
+    string ligne;
+    string contenu;
+    
+    if (saveFile)
+    {       
+        while ( getline (saveFile, ligne) )
+        {
+            contenu = contenu + ligne + "\r\n"; 
+        }
+        
+        saveFile.close();
+    }
+    else
+    {
+        cout << "Erreur d'ouverture du fichier d'export" << endl;
+    }
+    
+    ListeTrajets listeTrajets;
+    
+    ListeTrajets * listeTrajetsFille;
+    
+    TrajetCompose * trajetCompose;
+    
+    int * i;
+    i = new int;
+    
+    *i = 0;
+    
+    while (contenu[*i] != '#')
+    {
+        // Trajet Compose
+        if (contenu[*i] != '0')
+        {
+            listeTrajetsFille = new ListeTrajets;
+            
+            int id = (int)contenu[*i];
+            int newId = id;
+            
+            while (newId == id)
+            {
+                listeTrajetsFille->Ajouter (lireTrajetCompose (contenu, i) );
+                
+                *i = *i + 2;
+                
+                newId = (int)contenu[*i];
+            }
+            
+            trajetCompose = new TrajetCompose (listeTrajetsFille);
+            
+            listeTrajets.Ajouter(trajetCompose);
+        }
+        // Trajet Simple
+        else if (contenu[*i] == '0')
+        {   
+            listeTrajets.Ajouter (lireTrajetSimple (contenu, i) );
+        }
+    }
+    
+    listeTrajets.Afficher();
 }
 
 void Catalogue::exporter ()
