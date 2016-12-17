@@ -53,7 +53,7 @@ void affecter (char * chaine1, const char * chaine2)
     chaine1[i] = chaine2[i];
 }
 
-bool equals (char * chaine1, char * chaine2);
+bool equals (char * chaine1, const char * chaine2);
 // Mode d'emploi :
     // Paramètres : Deux pointeur sur char
     // Action : Teste l'égalité entre les deux chaines
@@ -169,19 +169,25 @@ void Catalogue::Rechercher (ListeTrajets * listeResultats, char * depart,
     }
 }
 
-Trajet * lireTrajetSimple (string contenu, int * i)
+Trajet * lireTrajetSimple (string contenu, int * i, 
+                           char * depart = NULL, char * arrivee = NULL)
 {    
-    *i = *i + 2;
-    
     Trajet * trajetSimple;
         
-    string depart = "";
-    string arrivee = "";
+    string departLu = "";
+    string arriveeLu = "";
     string transport = "";
+    
+    while (contenu[*i] != ':')
+    {
+        *i = *i + 1;
+    }
+    
+    *i = *i + 1;
     
     while (contenu[*i] != '|')
     {
-        depart = depart + contenu[*i];
+        departLu = departLu + contenu[*i];
         
         *i = *i + 1;
     }
@@ -190,7 +196,7 @@ Trajet * lireTrajetSimple (string contenu, int * i)
     
     while (contenu[*i] != '|')
     {
-        arrivee = arrivee + contenu[*i];
+        arriveeLu = arriveeLu + contenu[*i];
         
         *i = *i + 1;
     }
@@ -206,39 +212,89 @@ Trajet * lireTrajetSimple (string contenu, int * i)
 
     *i = *i + 1;
     
-    trajetSimple = new TrajetSimple (depart.c_str(), arrivee.c_str(), transport.c_str());
+    if ( ( depart == NULL || equals (depart, departLu.c_str()) ) &&
+         ( arrivee == NULL || equals (arrivee, arriveeLu.c_str()) ) )
+    {
+        trajetSimple = new TrajetSimple (departLu.c_str(), arriveeLu.c_str(), transport.c_str());
     
-    return trajetSimple;
+        return trajetSimple;
+    }
+    
+    return NULL;
 }
 
-Trajet * lireTrajetCompose (string contenu, int * i)
+Trajet * lireTrajet (string contenu, int * i, 
+                     char * type, char * depart, char * arrivee, int niveau = 0)
 {
-    *i = *i + 2;
+    char simple[] = "s";
+    char compose[] = "c";
     
     // Trajet Compose
-    if (contenu[*i] != '0')
+    if (contenu[*i] != '0' && !equals (type, simple))
     {
-        ListeTrajets * listeTrajets;
-        listeTrajets = new ListeTrajets;
+        niveau = niveau + 1;
         
-        listeTrajets->Ajouter(lireTrajetCompose (contenu, i));
+        ListeTrajets * listeTrajetsFille;
+        listeTrajetsFille = new ListeTrajets;
         
-        Trajet * trajetCompose;
+        Trajet * trajet;
         
-        trajetCompose = new TrajetCompose(listeTrajets);
+        TrajetCompose * trajetCompose;
         
-        delete listeTrajets;
+        int id = (int)contenu[*i];
+        int newId = id;
         
-        return trajetCompose;
+        while (newId == id)
+        {
+            *i = *i + 2;
+           
+            trajet = lireTrajet (contenu, i, NULL, NULL, NULL, niveau);
+            
+            listeTrajetsFille->Ajouter (trajet);
+            
+            delete trajet;
+            
+            *i = *i + 2 * niveau;
+            
+            newId = (int)contenu[*i];
+        }
+        
+        *i = *i - 2 * niveau;
+        
+        niveau = niveau - 1;
+        
+        trajetCompose = new TrajetCompose (listeTrajetsFille);
+        
+        delete listeTrajetsFille;
+        
+        if ( ( depart == NULL || equals (depart, trajetCompose->GetDepart()) ) &&
+             ( arrivee == NULL || equals (arrivee, trajetCompose->GetArrivee()) ) )
+        {    
+            return trajetCompose;
+        }
+       
+        return NULL;
     }
     // Trajet Simple
-    else if (contenu[*i] == '0')
-    {    
-        return lireTrajetSimple (contenu, i);
+    else if (contenu[*i] == '0' && !equals (type, compose))
+    {   
+        return lireTrajetSimple (contenu, i, depart, arrivee);
+    }
+    else
+    {
+        while (contenu[*i] != '\n')
+        {    
+            *i = *i + 1;
+        }
+        
+        *i = *i - 1;
+        
+        return NULL;
     }
 }
 
-void Catalogue::importer ()
+void Catalogue::importer (char * type, char * depart, char * arrivee, 
+                          int debut, int fin)
 {
     ifstream saveFile;
     
@@ -246,6 +302,8 @@ void Catalogue::importer ()
     
     string ligne;
     string contenu;
+    
+    Trajet * trajet;
     
     if (saveFile)
     {       
@@ -261,48 +319,61 @@ void Catalogue::importer ()
         cout << "Erreur d'ouverture du fichier d'export" << endl;
     }
     
-    ListeTrajets listeTrajets;
-    
-    ListeTrajets * listeTrajetsFille;
-    
-    TrajetCompose * trajetCompose;
-    
     int * i;
+    
     i = new int;
     
     *i = 0;
     
-    while (contenu[*i] != '#')
+    if (fin == 0)
     {
-        // Trajet Compose
-        if (contenu[*i] != '0')
+        while (contenu[*i] != '#')
         {
-            listeTrajetsFille = new ListeTrajets;
-            
-            int id = (int)contenu[*i];
-            int newId = id;
-            
-            while (newId == id)
+            trajet = lireTrajet(contenu, i, type, depart, arrivee);
+                
+            if (trajet != NULL)
             {
-                listeTrajetsFille->Ajouter (lireTrajetCompose (contenu, i) );
+                listeTrajets.Ajouter(trajet);
                 
-                *i = *i + 2;
-                
-                newId = (int)contenu[*i];
+                delete trajet;
             }
-            
-            trajetCompose = new TrajetCompose (listeTrajetsFille);
-            
-            listeTrajets.Ajouter(trajetCompose);
+
+            *i = *i + 2;
         }
-        // Trajet Simple
-        else if (contenu[*i] == '0')
-        {   
-            listeTrajets.Ajouter (lireTrajetSimple (contenu, i) );
+    }
+    else
+    {
+        int nbTrajets = 0;
+        
+        while (contenu[*i] != '#' && nbTrajets <= debut)
+        {
+            trajet = lireTrajet(contenu, i, type, depart, arrivee);
+            
+            delete trajet;
+            
+            nbTrajets = nbTrajets + 1;
+            
+            *i = *i + 2;
+        }
+        
+        while (contenu[*i] != '#' && nbTrajets <= fin)
+        {
+            trajet = lireTrajet(contenu, i, type, depart, arrivee);
+            
+            if (trajet != NULL)
+            {
+                listeTrajets.Ajouter(trajet);
+                
+                delete trajet;
+ 
+                nbTrajets = nbTrajets + 1;
+            }
+ 
+            *i = *i + 2;
         }
     }
     
-    listeTrajets.Afficher();
+    delete i;
 }
 
 void Catalogue::exporter ()
@@ -332,8 +403,13 @@ Catalogue::~Catalogue ()
 
 //----------------------------------------------------- Méthodes protégées
 
-bool equals (char * chaine1, char * chaine2)
+bool equals (char * chaine1, const char * chaine2)
 {
+    if (chaine1 == NULL || chaine2 == NULL)
+    {
+        return false;
+    }
+    
     int i = 0;
     
     while (chaine1[i] == chaine2[i] && chaine1[i] != '\0' && 
@@ -350,14 +426,130 @@ bool equals (char * chaine1, char * chaine2)
     return true;
 }
 
-void run ()
+Trajet * creerTrajet (int niveau = 0, char * departPrecedent = NULL)
 {
-    Catalogue catalogue;
-    
     char lecture[100];
     char depart[100];
     char arrivee[100];
     char transport[100];
+    
+    char simple[] = "s";
+    char compose[] = "c";
+    char nouveau[] = "n";
+      
+    for (int i = 0; i < niveau; i = i + 1){cout << "    ";}
+    cout << "     Simple : s / Compose : c : ";
+            
+    cin >> lecture;
+    
+    // Trajet Simple
+    if ( equals (lecture, simple) == true )
+    {
+        Trajet * trajetSimple;
+        
+        for (int i = 0; i < niveau; i = i + 1){cout << "    ";}
+        cout << "     Depart  : ";
+        
+        if ( departPrecedent == NULL )
+        {
+            cin >> depart;
+        }
+        else
+        {
+            cout << departPrecedent << endl;
+            
+            affecter (depart, departPrecedent);
+        }
+            
+        for (int i = 0; i < niveau; i = i + 1){cout << "    ";}
+        cout << "     Arrivee : ";
+        
+        cin >> arrivee;
+        
+        for (int i = 0; i < niveau; i = i + 1){cout << "    ";}
+        cout << "     Transport : ";
+        
+        cin >> transport;
+        
+        trajetSimple = new TrajetSimple (depart, arrivee, transport);
+        
+        return trajetSimple;
+    }
+    // Trajet Compose
+    else if ( equals (lecture, compose) == true )
+    {
+        niveau = niveau + 1;
+        
+        ListeTrajets * liste;
+        liste = new ListeTrajets;
+        
+        Trajet * trajetCompose;
+        
+        Trajet * trajet;
+        
+        bool nouveauTrajet;
+        
+        int nbTrajets = 0;
+        
+        do
+        {
+            for (int i = 0; i < niveau-1; i = i + 1){cout << "    ";}
+            cout << "     Trajet " << nbTrajets+1 << " : " << endl; 
+            
+            if (nbTrajets > 0)
+            {
+                trajet = creerTrajet(niveau, liste->GetTrajet(nbTrajets-1)->GetArrivee());
+            }
+            else
+            {
+                trajet = creerTrajet(niveau);
+            }
+            
+            liste->Ajouter(trajet);
+                
+            delete trajet;
+            
+            for (int i = 0; i < niveau; i = i + 1){cout << "    ";}
+            cout << "     Nouveau trajet : n / Fin : f : ";
+            
+            cin >> lecture;
+            
+            nouveauTrajet = false;
+            
+            if ( equals (lecture, nouveau) )
+            {
+                nouveauTrajet = true;
+            }
+            
+            nbTrajets = nbTrajets + 1; 
+        }
+        while (nouveauTrajet);
+        
+        trajetCompose = new TrajetCompose (liste);
+                
+        delete liste;
+        
+        return trajetCompose;
+    }
+    else
+    {
+        return NULL;
+    }
+}
+
+void run ()
+{
+    Catalogue catalogue;
+    
+    Trajet * trajet;
+    
+    char lecture[100];
+    char depart[100];
+    char arrivee[100];
+    
+    char * departImport;
+    char * arriveeImport;
+    char * type;
     
     char quit[] = "q";
     char ajouter[] = "a";
@@ -367,14 +559,11 @@ void run ()
     char rechercher[] = "r";
     char exporter[] = "e";
     char importer[] = "i";
-    
-    int nbTrajets;
-    int i;
-    
-    TrajetSimple * trajetSimple;
-    TrajetCompose * trajetCompose;
-    
-    ListeTrajets * liste;
+    char departArrivee[] = "da";
+    char bornes[] = "b";
+
+    int debut;
+    int fin;
     
     do 
     {
@@ -386,80 +575,11 @@ void run ()
         // Ajouter Trajet
         if ( equals (lecture, ajouter) == true )
         {
-            cout << "    Simple : s / Compose : c : ";
+            trajet = creerTrajet();
             
-            cin >> lecture;
+            catalogue.Ajouter(trajet);
             
-            // Trajet Simple
-            if ( equals (lecture, simple) == true )
-            {
-                cout << "       Depart  : ";
-                
-                cin >> depart;
-                
-                cout << "       Arrivee : ";
-                
-                cin >> arrivee;
-                
-                cout << "       Transport : ";
-                
-                cin >> transport;
-                
-                trajetSimple = new TrajetSimple (depart, arrivee, transport);
-                
-                catalogue.Ajouter (trajetSimple);
-                
-                delete trajetSimple;
-            }
-            // Trajet Compose
-            else if ( equals (lecture, compose) == true )
-            {
-                cout << "       Nombre Trajets : ";
-                
-                cin >> nbTrajets;
-                
-                liste = new ListeTrajets;
-                
-                for (i = 0; i < nbTrajets; i = i + 1)
-                {
-                    cout << "       Trajet " << i+1 << " : " << endl; 
-                    
-                    cout << "           Depart  : ";
-                    
-                    if (i == 0)
-                    {
-                        cin >> depart;
-                    }
-                    else
-                    {
-                        affecter(depart, arrivee);
-                        
-                        cout << depart << endl;
-                    }
-                    
-                    cout << "           Arrivee : ";
-                    
-                    cin >> arrivee;
-                    
-                    cout << "           Transport : ";
-                    
-                    cin >> transport;
-                    
-                    trajetSimple = new TrajetSimple (depart, arrivee, transport);
-                    
-                    liste->Ajouter (trajetSimple);
-                    
-                    delete trajetSimple;
-                }
-                
-                trajetCompose = new TrajetCompose (liste);
-                    
-                delete liste;
-              
-                catalogue.Ajouter (trajetCompose);
-                
-                delete trajetCompose;
-            }
+            delete trajet;
         }
         // Afficher
         else if ( equals (lecture, afficher) == true )
@@ -513,7 +633,59 @@ void run ()
         // Importer
         else if ( equals (lecture, importer) == true )
         {
-            catalogue.importer();
+            cout << "     Restrictions : " << endl;
+            
+            type = NULL;
+            departImport = NULL;
+            arriveeImport = NULL;
+            debut = 0;
+            fin = 0;
+            
+            cout << "         Simples : s / Composes : c / Tous : t : ";
+            
+            cin >> lecture;
+            
+            if ( equals (lecture, simple) == true || 
+                 equals (lecture, compose) == true )
+            {
+                affecter(type, lecture);
+            }
+            
+            cout << "         Depart et Arrivée : da / Tous : t : ";
+            
+            cin >> lecture;
+                
+            if ( equals (lecture, departArrivee) == true )
+            {
+                cout << "             Depart : ";
+                
+                cin >> departImport;
+                
+                cout << "             Arrivée : ";
+                
+                cin >> arriveeImport;
+            }
+            
+            cout << "         Bornes Trajets : b / Tous : t : ";
+            
+            cin >> lecture;
+                
+            if ( equals (lecture, bornes) == true )
+            {
+                cout << "             Debut : ";
+                
+                cin >> debut;
+                
+                cout << "             Fin : ";
+                
+                cin >> fin;
+            }
+     
+            catalogue.importer (type, departImport, arriveeImport, debut, fin);
+            
+            delete[] departImport;
+            delete[] arriveeImport;
+            delete[] type;
         }
     }
     // Quitter
