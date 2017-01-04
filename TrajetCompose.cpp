@@ -15,6 +15,10 @@ using namespace std;
 
 #include <iostream>
 
+#include <string>
+
+#include <sstream>
+
 //------------------------------------------------------ Include personnel
 
 # include "TrajetCompose.h"
@@ -71,6 +75,39 @@ void TrajetCompose::Afficher(int indentation)
     #endif
     
     listeTrajets->Afficher(indentation);
+}
+
+string TrajetCompose::exporterTrajet(unsigned int numero)
+// Algorithme :
+	// Construit la chaine de caractères correspondante au trajet à
+    // écrire dans le fichier de sauvegarde
+{
+
+    #ifdef MAP
+        cout << "Appel de la methode TrajetCompose::exporterTrajet" << endl;
+    #endif
+
+    stringstream ss1;
+    ss1 << numero;
+    string numeroS = ss1.str();
+
+    string line = "";
+
+    unsigned int i = 0;
+
+    while(listeTrajets->GetTrajet(i) != NULL)
+    {
+
+        stringstream ss2;
+        ss2 << i;
+        string iS = ss2.str();
+
+        line = line + numeroS + "|" + listeTrajets->GetTrajet(i)->exporterTrajet(i);
+        i++;
+    }
+
+    return line;
+
 }
 
 Trajet * TrajetCompose::Clone()

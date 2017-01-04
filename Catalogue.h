@@ -64,6 +64,10 @@ class Catalogue
         // Contrat :
             // Cohérence : Liste vide, chaines et tableaux valides
 
+        void exporter();
+
+        void importer();
+
 //-------------------------------------------- Constructeurs - destructeur
     
         Catalogue ();

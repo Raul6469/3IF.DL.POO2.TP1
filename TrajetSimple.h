@@ -14,6 +14,8 @@
 
 # include "ListeTrajets.h"
 
+# include <string>
+
 //------------------------------------------------------------- Constantes
 
 //------------------------------------------------------------------ Types 
@@ -55,6 +57,13 @@ class TrajetSimple : public Trajet
         // Contrat :
             // Cohérence : Trajet valide et trajet non modifié
             // Performance : renvoie un pointeur sur la liste de trajets
+
+        string exporterTrajet(unsigned int numero);
+        // Mode d'emploi :
+            // Action : Permet d'écrire dans le fichier de sauvegarde le trajet ayant appelé la méthode
+        // Contrat :
+            // Cohérence : Trajet valide et trajet non modifié
+            // Performance : Enregistre le trajet dans le fichier
         
         virtual void Afficher (int indentation);
         // Mode d'emploi :
