@@ -93,7 +93,14 @@ void Catalogue::Afficher ()
         cout << "Appel de la methode Catalogue::Afficher" << endl;
     # endif
         
-    listeTrajets.Afficher ();
+    if (listeTrajets.GetTrajet(0) == NULL)
+    {
+        cout << " La liste de trajets est vide" << endl;
+    }
+    else
+    {
+        listeTrajets.Afficher ();
+    }
 }
 
 ListeTrajets * Catalogue::GetListe ()
