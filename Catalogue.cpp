@@ -656,6 +656,11 @@ void run ()
             
             listeResultats->Afficher(0);
             
+            if (listeResultats->GetTrajet(0) == NULL)
+            {
+                cout << " Aucun Trajet correspondant à la recherche" << endl;
+            }
+            
             delete listeResultats;
         }
         // Exporter
