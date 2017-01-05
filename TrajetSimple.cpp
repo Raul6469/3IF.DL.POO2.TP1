@@ -109,9 +109,9 @@ Trajet * TrajetSimple::Clone()
     return clone;
 }
 
-string TrajetSimple::exporterTrajet(unsigned int numero)
+string TrajetSimple::exporterTrajet(unsigned int numero, string aEcrire)
 // Algorithme :
-	// Construit la chaine de caractères correspondante au trajet à
+    // Construit la chaine de caractères correspondante au trajet à
     // écrire dans le fichier de sauvegarde
 {
 
@@ -125,7 +125,7 @@ string TrajetSimple::exporterTrajet(unsigned int numero)
     string ArriveeS = string(arrivee);
     string TransportS = string(transport);
 
-    line = "0:" + DepartS + "|" + ArriveeS + "|" + TransportS + "|" + "\n";
+    line = aEcrire + "0:" + DepartS + "|" + ArriveeS + "|" + TransportS + "|" + "\n";
 
     return line;
 

@@ -69,7 +69,7 @@ class Trajet
             // Cohérence : objet appelant la méthode valide
             // Performance : objet créé valide
 
-        virtual string exporterTrajet(unsigned int numero) = 0;
+        virtual string exporterTrajet(unsigned int numero, string eEcrire) = 0;
         // Mode d'emploi :
             // Action : Permet d'écrire dans le fichier de sauvegarde le trajet ayant appelé la méthode
         // Contrat :

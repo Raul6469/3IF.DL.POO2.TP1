@@ -345,7 +345,7 @@ void Catalogue::importer (char * type, char * depart, char * arrivee,
     {
         int nbTrajets = 0;
         
-        while (contenu[*i] != '#' && nbTrajets <= debut)
+        while (contenu[*i] != '#' && nbTrajets < debut-1)
         {
             trajet = lireTrajet(contenu, i, type, depart, arrivee);
             
@@ -356,8 +356,8 @@ void Catalogue::importer (char * type, char * depart, char * arrivee,
             *i = *i + 2;
         }
         
-        while (contenu[*i] != '#' && nbTrajets <= fin)
-        {
+        while (contenu[*i] != '#' && nbTrajets <= fin-1)
+        {       
             trajet = lireTrajet(contenu, i, type, depart, arrivee);
             
             if (trajet != NULL)
@@ -368,7 +368,7 @@ void Catalogue::importer (char * type, char * depart, char * arrivee,
  
                 nbTrajets = nbTrajets + 1;
             }
- 
+            
             *i = *i + 2;
         }
     }
@@ -385,10 +385,12 @@ void Catalogue::exporter()
     unsigned int i = 0;
 
     string line = "";
+    
+    string str = "";
 
     while(listeTrajets.GetTrajet(i) != NULL)
     {
-        line = line + listeTrajets.GetTrajet(i)->exporterTrajet(i);
+        line = line + listeTrajets.GetTrajet(i)->exporterTrajet(i, str);
         
         i++;
     }
@@ -530,14 +532,21 @@ Trajet * creerTrajet (int niveau = 0, char * departPrecedent = NULL)
                 
             delete trajet;
             
-            for (int i = 0; i < niveau; i = i + 1){cout << "    ";}
-            cout << "     Nouveau trajet : n / Fin : f : ";
-            
-            cin >> lecture;
-            
-            nouveauTrajet = false;
-            
-            if ( equals (lecture, nouveau) )
+            if (nbTrajets > 0)
+            {
+                for (int i = 0; i < niveau-1; i = i + 1){cout << "    ";}
+                cout << "     Nouveau trajet : n / Fin : f : ";
+                
+                cin >> lecture;
+                
+                nouveauTrajet = false;
+                
+                if ( equals (lecture, nouveau) )
+                {
+                    nouveauTrajet = true;
+                }
+            }
+            else
             {
                 nouveauTrajet = true;
             }
@@ -659,9 +668,6 @@ void run ()
         {
             cout << "     Restrictions : " << endl;
             
-            type = NULL;
-            departImport = NULL;
-            arriveeImport = NULL;
             debut = 0;
             fin = 0;
             
@@ -672,7 +678,13 @@ void run ()
             if ( equals (lecture, simple) == true || 
                  equals (lecture, compose) == true )
             {
+                type = new char;
+                
                 affecter(type, lecture);
+            }
+            else
+            {
+                type = NULL;
             }
             
             cout << "         Depart et Arrivée : da / Tous : t : ";
@@ -681,6 +693,9 @@ void run ()
                 
             if ( equals (lecture, departArrivee) == true )
             {
+                departImport = new char;
+                arriveeImport = new char;
+                
                 cout << "             Depart : ";
                 
                 cin >> departImport;
@@ -688,6 +703,11 @@ void run ()
                 cout << "             Arrivée : ";
                 
                 cin >> arriveeImport;
+            }
+            else
+            {
+                departImport = NULL;
+                arriveeImport = NULL;
             }
             
             cout << "         Bornes Trajets : b / Tous : t : ";
@@ -707,13 +727,14 @@ void run ()
      
             catalogue.importer (type, departImport, arriveeImport, debut, fin);
             
-            delete[] departImport;
-            delete[] arriveeImport;
-            delete[] type;
+            delete departImport;
+            delete arriveeImport;
+            delete type;
         }
     }
     // Quitter
     while ( equals (lecture, quit) == false );
+    
 }
 
 int main ()

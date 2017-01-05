@@ -58,7 +58,7 @@ class TrajetSimple : public Trajet
             // Cohérence : Trajet valide et trajet non modifié
             // Performance : renvoie un pointeur sur la liste de trajets
 
-        string exporterTrajet(unsigned int numero);
+        string exporterTrajet(unsigned int numero, string aEcrire);
         // Mode d'emploi :
             // Action : Permet d'écrire dans le fichier de sauvegarde le trajet ayant appelé la méthode
         // Contrat :

@@ -77,7 +77,7 @@ void TrajetCompose::Afficher(int indentation)
     listeTrajets->Afficher(indentation);
 }
 
-string TrajetCompose::exporterTrajet(unsigned int numero)
+string TrajetCompose::exporterTrajet(unsigned int numero, string aEcrire)
 // Algorithme :
 	// Construit la chaine de caractères correspondante au trajet à
     // écrire dans le fichier de sauvegarde
@@ -92,12 +92,15 @@ string TrajetCompose::exporterTrajet(unsigned int numero)
     string numeroS = ss1.str();
 
     string line = "";
+    
+    string newAEcrire = aEcrire + numeroS + "|";
 
     unsigned int i = 0;
 
     while(listeTrajets->GetTrajet(i) != NULL)
     {
-        line = line + numeroS + "|" + listeTrajets->GetTrajet(i)->exporterTrajet(i);
+        line = line + listeTrajets->GetTrajet(i)->exporterTrajet(i, newAEcrire);
+        
         i++;
     }
 

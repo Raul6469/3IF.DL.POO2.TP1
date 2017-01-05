@@ -60,7 +60,7 @@ class TrajetCompose : public Trajet
             // Cohérence : Trajet valide et trajet non modifié
             // Performance : Renvoie un pointeur sur la ville d'arrivée
 
-        string exporterTrajet(unsigned int numero);
+        string exporterTrajet(unsigned int numero, string aEcrire);
         // Mode d'emploi :
             // Action : Permet d'écrire dans le fichier de sauvegarde le trajet ayant appelé la méthode
         // Contrat :
