@@ -15,6 +15,8 @@ using namespace std;
 
 #include <iostream>
 
+#include <string>
+
 //------------------------------------------------------ Include personnel
 
 # include "TrajetSimple.h"
@@ -107,11 +109,33 @@ Trajet * TrajetSimple::Clone()
     return clone;
 }
 
+string TrajetSimple::exporterTrajet(unsigned int numero)
+// Algorithme :
+	// Construit la chaine de caractères correspondante au trajet à
+    // écrire dans le fichier de sauvegarde
+{
+
+    #ifdef MAP
+        cout << "Appel de la methode TrajetSimple::exporterTrajet" << endl;
+    #endif
+
+    string line = "";
+
+    string DepartS = string(depart);
+    string ArriveeS = string(arrivee);
+    string TransportS = string(transport);
+
+    line = "0:" + DepartS + "|" + ArriveeS + "|" + TransportS + "|" + "\n";
+
+    return line;
+
+}
+
 //-------------------------------------------- Constructeurs - destructeur
 
-void affecter (char * chaine1, char * chaine2);
+void affecter (char * chaine1, const char * chaine2);
 
-TrajetSimple::TrajetSimple (char* dep, char* ar, char* trans)
+TrajetSimple::TrajetSimple (const char* dep, const char* ar, const char* trans)
 // Algorithme :
 	// Constructeur de TrajetSimple
 // Prend en paramètre les noms des villes de départ et d'arrivée, ainsi que le nom

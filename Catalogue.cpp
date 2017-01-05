@@ -376,9 +376,30 @@ void Catalogue::importer (char * type, char * depart, char * arrivee,
     delete i;
 }
 
-void Catalogue::exporter ()
+void Catalogue::exporter()
 {
-    
+    #ifdef MAP
+        cout << "Appel de la methode Catalogue::exporter" << endl;
+    #endif
+
+    unsigned int i = 0;
+
+    string line = "";
+
+    while(listeTrajets.GetTrajet(i) != NULL)
+    {
+        line = line + listeTrajets.GetTrajet(i)->exporterTrajet(i);
+        
+        i++;
+    }
+
+    ofstream fichier ("./SaveCatalogue");
+    streambuf * oldCoutBuffer = cout.rdbuf(fichier.rdbuf());
+
+    cout << line + "#";
+
+    cout.rdbuf(oldCoutBuffer);
+    fichier.close();
 }
 
 //------------------------------------------------- Surcharge d'opérateurs
@@ -577,7 +598,10 @@ void run ()
         {
             trajet = creerTrajet();
             
-            catalogue.Ajouter(trajet);
+            if (trajet != NULL)
+            {
+                catalogue.Ajouter(trajet);
+            }
             
             delete trajet;
         }

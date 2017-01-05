@@ -12,6 +12,8 @@
 
 //--------------------------------------------------- Interfaces utilisees
 
+# include <string>
+
 //------------------------------------------------------------- Constantes 
 
 //------------------------------------------------------------------ Types 
@@ -66,6 +68,13 @@ class Trajet
         // Contrat :
             // Cohérence : objet appelant la méthode valide
             // Performance : objet créé valide
+
+        virtual string exporterTrajet(unsigned int numero) = 0;
+        // Mode d'emploi :
+            // Action : Permet d'écrire dans le fichier de sauvegarde le trajet ayant appelé la méthode
+        // Contrat :
+            // Cohérence : Trajet valide et trajet non modifié
+            // Performance : Enregistre le trajet dans le fichier
 
 //-------------------------------------------- Constructeurs - destructeur
 

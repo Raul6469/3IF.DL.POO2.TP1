@@ -64,6 +64,15 @@ class Catalogue
         // Contrat :
             // Cohérence : Liste vide, chaines et tableaux valides
 
+        void exporter();
+
+        void importer (char * type, char * depart, char * arrivee, 
+                       int debut, int fin);
+        // Mode d'emploi :
+            // Action : Ajoute les trajets du fichier d'export au catalogue
+        // Contrat :
+            // Cohérence : Trajets du fichier valides
+
 //-------------------------------------------- Constructeurs - destructeur
     
         Catalogue ();
