@@ -88,7 +88,7 @@ string TrajetCompose::exporterTrajet(unsigned int numero)
     #endif
 
     stringstream ss1;
-    ss1 << numero;
+    ss1 << numero+1;
     string numeroS = ss1.str();
 
     string line = "";
@@ -97,10 +97,6 @@ string TrajetCompose::exporterTrajet(unsigned int numero)
 
     while(listeTrajets->GetTrajet(i) != NULL)
     {
-        stringstream ss2;
-        ss2 << i;
-        string iS = ss2.str();
-
         line = line + numeroS + "|" + listeTrajets->GetTrajet(i)->exporterTrajet(i);
         i++;
     }
