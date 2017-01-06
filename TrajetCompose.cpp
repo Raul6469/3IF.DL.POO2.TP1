@@ -88,6 +88,10 @@ string TrajetCompose::exporterTrajet(unsigned int numero, string aEcrire)
     #endif
 
     stringstream ss1;
+    if (numero >= 9)
+    {
+		numero = 1;
+	}
     ss1 << numero+1;
     string numeroS = ss1.str();
 
