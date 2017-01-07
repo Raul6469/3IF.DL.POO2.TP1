@@ -99,7 +99,11 @@ void Catalogue::Afficher ()
     }
     else
     {
+        cout << endl;
+        
         listeTrajets.Afficher ();
+    
+        cout << endl;
     }
 }
 
@@ -185,6 +189,8 @@ Trajet * lireTrajetSimple (string contenu, int * i,
     string arriveeLu = "";
     string transport = "";
     
+    char indifferent[] = "i";
+    
     while (contenu[*i] != ':')
     {
         *i = *i + 1;
@@ -219,8 +225,10 @@ Trajet * lireTrajetSimple (string contenu, int * i,
 
     *i = *i + 1;
     
-    if ( ( depart == NULL || equals (depart, departLu.c_str()) ) &&
-         ( arrivee == NULL || equals (arrivee, arriveeLu.c_str()) ) )
+    if ( ( depart == NULL || equals (depart, indifferent) || 
+           equals (depart, departLu.c_str()) ) &&
+         ( arrivee == NULL || equals (arrivee, indifferent) || 
+           equals (arrivee, arriveeLu.c_str()) ) )
     {
         trajetSimple = new TrajetSimple (departLu.c_str(), arriveeLu.c_str(), transport.c_str());
     
@@ -235,6 +243,7 @@ Trajet * lireTrajet (string contenu, int * i,
 {
     char simple[] = "s";
     char compose[] = "c";
+    char indifferent[] = "i";
     
     // Trajet Compose
     if (contenu[*i] != '0' && !equals (type, simple))
@@ -274,8 +283,10 @@ Trajet * lireTrajet (string contenu, int * i,
         
         delete listeTrajetsFille;
         
-        if ( ( depart == NULL || equals (depart, trajetCompose->GetDepart()) ) &&
-             ( arrivee == NULL || equals (arrivee, trajetCompose->GetArrivee()) ) )
+        if ( ( depart == NULL || equals (depart, indifferent) || 
+               equals (depart, trajetCompose->GetDepart()) ) &&
+             ( arrivee == NULL || equals (arrivee, indifferent) || 
+               equals (arrivee, trajetCompose->GetArrivee()) ) )
         {    
             return trajetCompose;
         }
@@ -300,31 +311,10 @@ Trajet * lireTrajet (string contenu, int * i,
     }
 }
 
-void Catalogue::importer (char * type, char * depart, char * arrivee, 
-                          int debut, int fin)
+void Catalogue::importer (string contenu, char * type, 
+                          char * depart, char * arrivee, int debut, int fin)
 {
-    ifstream saveFile;
-    
-    saveFile.open ("./SaveCatalogue");
-    
-    string ligne;
-    string contenu;
-    
     Trajet * trajet;
-    
-    if (saveFile)
-    {       
-        while ( getline (saveFile, ligne) )
-        {
-            contenu = contenu + ligne + "\r\n"; 
-        }
-        
-        saveFile.close();
-    }
-    else
-    {
-        cout << "Erreur d'ouverture du fichier d'export" << endl;
-    }
     
     int * i;
     
@@ -332,37 +322,39 @@ void Catalogue::importer (char * type, char * depart, char * arrivee,
     
     *i = 0;
     
+    int nbTrajets = 0;
+        
+    while (contenu[*i] != '#' && nbTrajets < debut-1)
+    {
+        trajet = lireTrajet(contenu, i, type, depart, arrivee);
+        
+        delete trajet;
+        
+        nbTrajets = nbTrajets + 1;
+        
+        *i = *i + 2;
+    }
+    
     if (fin == 0)
     {
         while (contenu[*i] != '#')
-        {
+        {       
             trajet = lireTrajet(contenu, i, type, depart, arrivee);
-                
+            
             if (trajet != NULL)
             {
                 listeTrajets.Ajouter(trajet);
                 
                 delete trajet;
-            }
 
+                nbTrajets = nbTrajets + 1;
+            }
+            
             *i = *i + 2;
         }
     }
     else
     {
-        int nbTrajets = 0;
-        
-        while (contenu[*i] != '#' && nbTrajets < debut-1)
-        {
-            trajet = lireTrajet(contenu, i, type, depart, arrivee);
-            
-            delete trajet;
-            
-            nbTrajets = nbTrajets + 1;
-            
-            *i = *i + 2;
-        }
-        
         while (contenu[*i] != '#' && nbTrajets <= fin-1)
         {       
             trajet = lireTrajet(contenu, i, type, depart, arrivee);
@@ -372,7 +364,7 @@ void Catalogue::importer (char * type, char * depart, char * arrivee,
                 listeTrajets.Ajouter(trajet);
                 
                 delete trajet;
- 
+
                 nbTrajets = nbTrajets + 1;
             }
             
@@ -381,6 +373,8 @@ void Catalogue::importer (char * type, char * depart, char * arrivee,
     }
     
     delete i;
+    
+    cout << "     Fichier importe" << endl;
 }
 
 void Catalogue::exporter()
@@ -388,6 +382,12 @@ void Catalogue::exporter()
     #ifdef MAP
         cout << "Appel de la methode Catalogue::exporter" << endl;
     #endif
+        
+    string cheminFichier;
+        
+    cout << "     Chemin d'accès du fichier : ";
+            
+    cin >> cheminFichier;
 
     unsigned int i = 0;
 
@@ -402,13 +402,23 @@ void Catalogue::exporter()
         i++;
     }
 
-    ofstream fichier ("./SaveCatalogue");
+    ofstream fichier (cheminFichier.c_str());
+    
+    if (!fichier)
+    {
+        cout << "     Erreur d'ouverture du fichier d'export" << endl;
+        
+        return;
+    }
+    
     streambuf * oldCoutBuffer = cout.rdbuf(fichier.rdbuf());
 
     cout << line + "#";
 
     cout.rdbuf(oldCoutBuffer);
     fichier.close();
+    
+    cout << "     Fichier exporte" << endl;
 }
 
 //------------------------------------------------- Surcharge d'opérateurs
@@ -528,7 +538,8 @@ Trajet * creerTrajet (int niveau = 0, char * departPrecedent = NULL)
             
             if (nbTrajets > 0)
             {
-                trajet = creerTrajet(niveau, liste->GetTrajet(nbTrajets-1)->GetArrivee());
+                trajet = creerTrajet(niveau, 
+                                     liste->GetTrajet(nbTrajets-1)->GetArrivee());
             }
             else
             {
@@ -588,17 +599,18 @@ void run ()
     char * arriveeImport;
     char * type;
     
+    string cheminFichier;
+    
     char quit[] = "q";
     char ajouter[] = "a";
     char simple[] = "s";
     char compose[] = "c";
+    char indifferent[] = "i";
     char afficher[] = "f";
     char rechercher[] = "r";
     char exporter[] = "e";
     char importer[] = "i";
-    char departArrivee[] = "da";
-    char bornes[] = "b";
-
+    
     int debut;
     int fin;
     
@@ -678,70 +690,87 @@ void run ()
         // Importer
         else if ( equals (lecture, importer) == true )
         {
-            cout << "     Restrictions : " << endl;
+            cout << "     Chemin d'accès du fichier : ";
             
-            debut = 0;
-            fin = 0;
+            cin >> cheminFichier;
             
-            cout << "         Simples : s / Composes : c / Tous : t : ";
             
-            cin >> lecture;
             
-            if ( equals (lecture, simple) == true || 
-                 equals (lecture, compose) == true )
-            {
+            ifstream saveFile;
+    
+            saveFile.open (cheminFichier.c_str());
+            
+            string contenu;
+            string ligne;
+            
+            if (saveFile)
+            {       
+                while ( getline (saveFile, ligne) )
+                {
+                    contenu = contenu + ligne + "\r\n"; 
+                }
+                
+                saveFile.close();
+                
+                cout << "     Restrictions : " << endl;
+            
                 type = new char;
-                
-                affecter(type, lecture);
-            }
-            else
-            {
-                type = NULL;
-            }
-            
-            cout << "         Depart et Arrivée : da / Tous : t : ";
-            
-            cin >> lecture;
-                
-            if ( equals (lecture, departArrivee) == true )
-            {
                 departImport = new char;
                 arriveeImport = new char;
+                affecter(type, indifferent);
+                affecter(departImport, indifferent);
+                affecter(arriveeImport, indifferent);
                 
-                cout << "             Depart : ";
+                debut = 0;
+                fin = 0;
                 
-                cin >> departImport;
+                cout << "         Simples : s / Composes : c (Indiferrent : i) : ";
                 
-                cout << "             Arrivée : ";
+                cin >> lecture;
                 
-                cin >> arriveeImport;
-            }
-            else
-            {
-                departImport = NULL;
-                arriveeImport = NULL;
-            }
-            
-            cout << "         Bornes Trajets : b / Tous : t : ";
-            
-            cin >> lecture;
+                if ( equals (lecture, simple) == true || 
+                    equals (lecture, compose) == true )
+                {    
+                    affecter(type, lecture);
+                }
                 
-            if ( equals (lecture, bornes) == true )
-            {
-                cout << "             Debut : ";
+                cout << "         Depart (Indiferrent : i) : ";
+                
+                cin >> lecture;
+                
+                if ( !equals (lecture, indifferent))
+                {
+                    affecter (departImport, lecture);
+                }
+                    
+                cout << "         Arrivee (Indiferrent : i) : ";
+                
+                cin >> lecture;
+                
+                if ( !equals (lecture, indifferent))
+                {
+                    affecter (arriveeImport, lecture);
+                }
+                
+                cout << "         Borne inferieure (Indifferent : 0) : ";
                 
                 cin >> debut;
                 
-                cout << "             Fin : ";
+                cout << "         Borne superieure (Indifferent : 0) : ";
                 
                 cin >> fin;
+                
+                catalogue.importer (contenu, type, 
+                                    departImport, arriveeImport, debut, fin);
+                
+                delete departImport;
+                delete arriveeImport;
+                delete type;
             }
-     
-            catalogue.importer (type, departImport, arriveeImport, debut, fin);
-            
-            delete departImport;
-            delete arriveeImport;
-            delete type;
+            else
+            {
+                cout << "     Erreur d'ouverture du fichier d'import" << endl;
+            }
         }
     }
     // Quitter
