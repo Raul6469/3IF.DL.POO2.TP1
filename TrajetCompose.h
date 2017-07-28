@@ -39,7 +39,7 @@ class TrajetCompose : public Trajet
 
 //----------------------------------------------------- Methodes publiques
 
-        //virtual char * GetDepart ();
+        virtual char * GetDepart ();
         // Mode d'emploi :
             // Action : Permet d'obtenir la ville de départ du trajet passé en paramètre
         // Contrat :
